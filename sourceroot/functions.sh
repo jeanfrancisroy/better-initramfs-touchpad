@@ -128,11 +128,16 @@ emount() {
 	# All mounts into one place is good idea.
 	while [ $# -gt 0 ]; do
 		case $1 in
-			'/newroot')
-				einfo "Mounting /newroot..."
+			'/tmproot')
+				einfo "Mounting /tmproot..."
 				if [ -n "${rootfstype}" ]; then local mountparams="${rootfsmountparams} -t ${rootfstype}"; fi
 				resolve_device root
-				run mount -o ro ${mountparams} "${root}" '/newroot'
+				run mount -o ro ${mountparams} "${root}" '/tmproot'
+			;;
+
+			'/newroot')
+				einfo "Mounting /newroot..."
+				run mount -o bind "/tmproot/${rootdir}" '/newroot'
 			;;
 	
 			'/dev')

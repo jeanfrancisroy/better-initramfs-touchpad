@@ -8,7 +8,8 @@
 . /functions.sh
 
 # Prepare dirs
-run dodir /dev /newroot /sbin /proc /sys /etc /var/log /var/run
+# HACK: added /tmpdir
+run dodir /dev /tmproot /newroot /sbin /proc /sys /etc /var/log /var/run
 [ -d /lib ] && run ln -s /lib /lib64
 [ -d /usr/lib ] && run ln -s /usr/lib /usr/lib64
 
@@ -32,49 +33,56 @@ einfo "better-initramfs v${ver}. Linux kernel ${kernelver}.\n"
 emount /proc /sys
 
 # Disable kernel messages from popping onto the screen
-echo 0 > /proc/sys/kernel/printk
+# echo 0 > /proc/sys/kernel/printk
+
+# HACKS: we hard-code things!
+root=/dev/mapper/store-ext3fs
+init=/sbin/init
+lvm=true
+rootfstype=ext3
+rootdir=funtoo-chroot
 
 # Process command line options
-for i in $(cat /proc/cmdline); do
-	case "${i}" in
-		root\=*)
-			root=$(get_opt $i)
-		;;
-		init\=*)
-			init=$(get_opt $i)
-		;;
-		enc_root\=*)
-			enc_root=$(get_opt $i)
-		;;
-		luks)
-			luks=true
-		;;
-		lvm)
-			lvm=true
-		;;
-		softraid)
-			softraid=true
-		;;
-		rescueshell)
-			rescueshell=true
-		;;
-		tuxonice)
-			tuxonice=true
-		;;
-		resume\=*)
-			resume=$(get_opt $i)
-		;;
-		rootfstype\=*)
-			rootfstype=$(get_opt $i)
-		;;
-		rootdelay\=*)
-			rootdelay=$(get_opt $i)
-		;;
-		mdev)
-			mdev=true
-		;;
-	esac
-done
+#for i in $(cat /proc/cmdline); do
+#	case "${i}" in
+#		root\=*)
+#			root=$(get_opt $i)
+#		;;
+#		init\=*)
+#			init=$(get_opt $i)
+#		;;
+#		enc_root\=*)
+#			enc_root=$(get_opt $i)
+#		;;
+#		luks)
+#			luks=true
+#		;;
+#		lvm)
+#			lvm=true
+#		;;
+#		softraid)
+#			softraid=true
+#		;;
+#		rescueshell)
+#			rescueshell=true
+#		;;
+#		tuxonice)
+#			tuxonice=true
+#		;;
+#		resume\=*)
+#			resume=$(get_opt $i)
+#		;;
+#		rootfstype\=*)
+#			rootfstype=$(get_opt $i)
+#		;;
+#		rootdelay\=*)
+#			rootdelay=$(get_opt $i)
+#		;;
+#		mdev)
+#			mdev=true
+#		;;
+#	esac
+#done
 
 musthave root
 
@@ -86,6 +94,10 @@ use lvm InitializeLVM
 use luks InitializeLUKS && use lvm InitializeLVM
 use rescueshell rescueshell
 use tuxonice TuxOnIceResume
+
+# HACK:
+emount /tmproot
+
 emount /newroot
 moveDev
 eumount /sys /proc
